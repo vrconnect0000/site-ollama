@@ -3,152 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant Pro | Ollama Local</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Minha IA Privada</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #0f172a; 
-            color: white;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .glass-card { 
-            background: rgba(30, 41, 59, 0.7); 
-            backdrop-filter: blur(16px); 
-            border: 1px solid rgba(255,255,255,0.1); 
-        }
-        #chat-log::-webkit-scrollbar { width: 5px; }
-        #chat-log::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .user-msg { background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 20px 20px 4px 20px; shadow: 0 4px 15px rgba(37, 99, 235, 0.2); }
-        .ai-msg { background: #1e293b; border: 1px solid #334155; border-radius: 20px 20px 20px 4px; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #f4f4f9; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; }
+        .msg { margin-bottom: 15px; padding: 10px; border-radius: 8px; max-width: 80%; }
+        .user { background: #007bff; color: white; align-self: flex-end; margin-left: auto; }
+        .ai { background: #e9e9eb; color: #333; }
+        .input-area { padding: 20px; background: white; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
-<body class="p-4">
-
-    <div class="w-full max-w-5xl h-[90vh] glass-card rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-        <header class="p-5 border-b border-slate-700 bg-slate-800/40 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="p-2 bg-blue-500/20 rounded-xl text-blue-400">
-                    <i data-lucide="bot"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-xl tracking-tight text-white">Ollama Web Pro</h1>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-[10px] font-bold text-green-500 uppercase tracking-widest">Conectado via Ngrok</span>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <div id="chat-log" class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-900/20">
-            <div class="flex justify-start">
-                <div class="ai-msg p-4 max-w-[85%] text-slate-200 shadow-sm">
-                    Olá! Estou pronto para ajudar. Como você está usando o modelo configurado para português, pode digitar sua dúvida abaixo.
-                </div>
-            </div>
-        </div>
-
-        <div class="p-6 bg-slate-800/30 border-t border-slate-700">
-            <div class="relative max-w-4xl mx-auto flex gap-3">
-                <input type="text" id="user-input" 
-                    placeholder="Escreva sua mensagem..." 
-                    class="w-full bg-slate-900 border border-slate-700 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-slate-200">
-                <button onclick="enviar()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-2xl transition-all flex items-center justify-center shadow-lg active:scale-95">
-                    <i data-lucide="send-horizontal" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <p class="text-[9px] text-center text-slate-500 mt-4 uppercase tracking-[0.2em]">Processamento Local Privado</p>
-        </div>
+<body>
+    <div id="chat"></div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Digite sua mensagem...">
+        <button onclick="enviar()">Enviar</button>
     </div>
 
     <script>
-        // Inicializa os ícones do Lucide
-        lucide.createIcons();
-
-        // --- CONFIGURAÇÃO DA URL ---
-        const NGROK_URL = 'https://nonrelieving-layla-unheedingly.ngrok-free.dev'; 
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('userInput');
+        
+        // SEU LINK FIXO DO NGROK
+        const NGROK_URL = 'https://nonrelieving-layla-unheedingly.ngrok-free.dev';
 
         async function enviar() {
-            const input = document.getElementById('user-input');
-            const log = document.getElementById('chat-log');
-            const texto = input.value.trim();
-
+            const texto = input.value;
             if (!texto) return;
 
-            // Adiciona mensagem do usuário na tela
-            log.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="user-msg p-4 max-w-[85%] text-white shadow-md">
-                        ${texto}
-                    </div>
-                </div>
-            `;
-            
+            // Mostrar mensagem do usuário
+            chat.innerHTML += `<div class="msg user">${texto}</div>`;
             input.value = '';
-            log.scrollTop = log.scrollHeight;
-
-            // Indicador de "Pensando"
-            const tempId = "loading-" + Date.now();
-            log.innerHTML += `
-                <div id="${tempId}" class="flex justify-start">
-                    <div class="ai-msg p-4 flex gap-2 items-center">
-                        <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                        <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-                    </div>
-                </div>
-            `;
-            log.scrollTop = log.scrollHeight;
 
             try {
                 const response = await fetch(`${NGROK_URL}/api/generate`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true'
+                        'ngrok-skip-browser-warning': 'true' 
                     },
                     body: JSON.stringify({
-                        model: 'assistente-pt', // Nome do seu modelo no Ollama
+                        model: 'assistente-pt:latest', 
                         prompt: texto,
                         stream: false
                     })
                 });
 
                 const data = await response.json();
-                
-                // Remove o carregamento e coloca a resposta real
-                document.getElementById(tempId).remove();
-                log.innerHTML += `
-                    <div class="flex justify-start">
-                        <div class="ai-msg p-4 max-w-[85%] text-slate-200 shadow-sm">
-                            ${data.response}
-                        </div>
-                    </div>
-                `;
+                chat.innerHTML += `<div class="msg ai">${data.response}</div>`;
+                chat.scrollTop = chat.scrollHeight;
             } catch (error) {
-                document.getElementById(tempId).remove();
-                log.innerHTML += `
-                    <div class="flex justify-center">
-                        <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm">
-                            Falha na conexão com o servidor Ollama.
-                        </div>
-                    </div>
-                `;
+                chat.innerHTML += `<div class="msg ai" style="color:red">Erro: Verifique se o Ollama e o Ngrok estão ligados no seu PC.</div>`;
             }
-            log.scrollTop = log.scrollHeight;
         }
-
-        // Atalho Enter
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') enviar();
-        });
     </script>
 </body>
 </html>
