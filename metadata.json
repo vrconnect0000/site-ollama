@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Copy of Nexus AI Chat Hub",
+  "description": "A futuristic chat interface featuring intelligent AI companions, multimodal image support, and real-time voice conversations powered by Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
